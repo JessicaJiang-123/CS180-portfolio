@@ -1,0 +1,2203 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CS180 Intro to Computer Vision and Computational Photography</title>
+    <link rel="stylesheet" href="styles.css">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.23.0/themes/prism.min.css" rel="stylesheet" />
+    <link href="https://fonts.googleapis.com/css?family=Roboto&display=swap" rel="stylesheet">
+    <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
+    <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+</head>
+
+<body>
+    <div class="sidebar">
+        <h1>Project Navigation</h1>
+        <ul>
+            <li><a href="#" id="link0" onclick="showContent('module0', this)">Overview</a></li>
+            <li><a href="#" id="link1" onclick="showContent('module1', this)">Project 1: Images of the Russian Empire --
+                    Colorizing the Prokudin-Gorskii Photo Collection</a></li>
+            <li><a href="#" id="link2" onclick="showContent('module2', this)">Project 2: Fun with Filters and
+                    Frequencies!</a></li>
+            <li><a href="#" id="link3" onclick="showContent('module3', this)">Project 3: Face Morphing and Modelling a
+                    Photo Collection!</a></li>
+            <li><a href="#" id="link3" onclick="showContent('module4', this)">Project 4: (Auto)stitching and photo
+                    mosaics</a></li>
+            <li><a href="#" id="link3" onclick="showContent('module5', this)">Project 5: Neural Radiance Fields</a></li>
+            <li><a href="#" id="link3" onclick="showContent('module6', this)">Final Project</a></li>
+        </ul>
+    </div>
+
+    <div class="content">
+
+        <!-- Overview -->
+        <div id="module0" class="module">
+            <h1>Overview</h1>
+            <p>During the Fall 2023 semester, I participated in a visiting program at UC Berkeley, where I took CS 180:
+                Intro to Computer Vision and Computational Photography, taught by Professor Alexei Efros and Professor
+                Angjoo Kanazawa. This is a collection of the projects I completed during the course.</p>
+        </div>
+
+        <!-- Project 1 -->
+        <div id="module1" class="module" style="display: block;">
+            <h1>CS 180 Project 1: Colorizing the Prokudin-Gorskii photo collection</h1>
+            <p>By Zhiyao Jiang (jessica_jiangzy@berkeley.edu)</p>
+
+            <h2>Overview</h2>
+            <p>This project revolves around the remarkable work of <a
+                    href="https://en.wikipedia.org/wiki/Sergey_Prokudin-Gorsky">Sergei Mikhailovich Prokudin-Gorskii</a>
+                ,
+                who, as early as 1907, foresaw the future of color photography.
+                His extensive travels across the Russian Empire captured a treasure trove of color photographs using a
+                visionary approach:
+                recording scenes on glass plates through red, green, and blue filters.
+                His dream of using these images for educational purposes sadly went unfulfilled,
+                but these RGB glass plate negatives were preserved.
+                The collection of Prokudin-Gorskii photo is available <a
+                    href="https://www.loc.gov/collections/prokudin-gorskii/">here</a>.
+                The objective of this assignment is to leverage image processing techniques to automatically create
+                high-quality color images from Prokudin-Gorskii's glass plates. The task involves extracting
+                and aligning the three color channels (BGR), a challenge that can be addressed through
+                some more efficient methods such as an image pyramid.
+                Ultimately, the goal is to produce vivid RGB images from both low-res images and large images.</p>
+
+            <h2>Approach Description</h2>
+            <p>In the single-scale version of our approach implemented in Python,
+                We employed a displacement window spanning from -15 to 15 pixels.
+                To enhance the precision of alignment, We began by applying Canny edge detection to the images.
+                Subsequently, We employed the Sum of Squared Differences (SSD) metric for evaluation.</p>
+            <div class="centered-content1">
+                <math class="math" xmlns="http://www.w3.org/1998/Math/MathML">
+                    <mrow>
+                        <mi>SSD</mi>
+                        <mo>(</mo>
+                        <mi>u</mi>
+                        <mo>,</mo>
+                        <mi>v</mi>
+                        <mo>)</mo>
+                        <mo>=</mo>
+                        <munderover>
+                            <mo>∑</mo>
+                            <mrow>
+                                <mo>(</mo>
+                                <mi>x</mi>
+                                <mo>'</mo>
+                                <mo>,</mo>
+                                <mi>y</mi>
+                                <mo>'</mo>
+                                <mo>)</mo>
+                            </mrow>
+                            <mrow></mrow>
+                        </munderover>
+                        <msup>
+                            <mrow>
+                                <mo>[</mo>
+                                <mi>f</mi>
+                                <mo>(</mo>
+                                <mi>x</mi>
+                                <mo>'</mo>
+                                <mo>+</mo>
+                                <mi>u</mi>
+                                <mo>,</mo>
+                                <mi>y</mi>
+                                <mo>'</mo>
+                                <mo>+</mo>
+                                <mi>v</mi>
+                                <mo>)</mo>
+                                <mo>-</mo>
+                                <mi>g</mi>
+                                <mo>(</mo>
+                                <mi>x</mi>
+                                <mo>'</mo>
+                                <mo>,</mo>
+                                <mi>y</mi>
+                                <mo>')</mo>
+                                <mo>]</mo>
+                            </mrow>
+                            <mrow>
+                                <mn>2</mn>
+                            </mrow>
+                        </msup>
+                    </mrow>
+                </math>
+            </div>
+
+            <p>For the multi-scale pyramid version, we defines a set of pyramid scale factors,
+                the function then resizes the image based on the scale factors while preserving its aspect ratio.
+                Canny edge detection is also applied to each color channel to enhance image alignment accuracy.
+                For the alignment section, instead of using a fixed pixel window,
+                it tracks the displacement (x_offset and y_offset) required for optimal alignment at each scale.
+                As a result, we are able to expanded the alignment process to accommodate larger images, such as the
+                provided .tiff files.</p>
+
+            <h2>Results on Example Images</h2>
+            <h3>Single-scale version implemented on low-res images</h3>
+            <div style="text-align: center;">
+                <table border="1" class="center-table"
+                    style="width: 100%;  height: 500px; margin-left:auto; margin-right:auto;">
+                    <tr>
+                        <th>Name</th>
+                        <th>Image</th>
+                        <th>Offset</th>
+                        <th>Runtime</th>
+                    </tr>
+                    <tr>
+                        <td>cathedral</td>
+                        <td>
+                            <img src="Project_1/images/out/cathedral_output0.jpg" alt="Result on cathedral.jpg"
+                                width="450" height="400">
+                        </td>
+                        <td>G[5, 2], R[12, 3]</td>
+                        <td>1.28 s</td>
+                    </tr>
+                    <tr>
+                        <td>monastery</td>
+                        <td><img src="Project_1/images/out/monastery_output0.jpg" alt="Result on monastery.jpg"
+                                width="450" height="400"></td>
+                        <td>G[-3, 2], R[3, 2]</td>
+                        <td>1.33 s</td>
+                    </tr>
+                    <tr>
+                        <td>tobolsk</td>
+                        <td><img src="Project_1/images/out/tobolsk_output0.jpg" alt="Result on tobolsk.jpg" width="450"
+                                height="400"></td>
+                        <td>G[3, 2], R[6, 3]</td>
+                        <td>1.30 s</td>
+                    </tr>
+                </table>
+            </div>
+
+            <h3>Multiscale pyramid version implemented on large images</h3>
+            <div style="text-align: center;">
+                <table border="1" class="center-table"
+                    style="width: 100%;  height: 500px; margin-left:auto; margin-right:auto;">
+                    <tr>
+                        <th>Name</th>
+                        <th>Image</th>
+                        <th>Offset</th>
+                        <th>Runtime</th>
+                    </tr>
+                    <tr>
+                        <td>emir</td>
+                        <td>
+                            <img src="Project_1/images/large_image/emir_output.jpg" alt="Result on emir.tif" width="450"
+                                height="400">
+                        </td>
+                        <td>G[49, 23], R[107, 40]</td>
+                        <td>21.40 s</td>
+                    </tr>
+                    <tr>
+                        <td>church</td>
+                        <td><img src="Project_1/images/large_image/church_output.jpg" alt="Result on church.tif"
+                                width="450" height="400"></td>
+                        <td>G[25, 4], R[58, -4]</td>
+                        <td>22.11 s</td>
+                    </tr>
+                    <tr>
+                        <td>harvesters</td>
+                        <td><img src="Project_1/images/large_image/harvesters_output.jpg" alt="Result on harvesters.tif"
+                                width="450" height="400"></td>
+                        <td>G[60, 18], R[123, 9]</td>
+                        <td>19.26 s</td>
+                    </tr>
+                    <tr>
+                        <td>icon</td>
+                        <td><img src="Project_1/images/large_image/icon_output.jpg" alt="Result on icon.tif" width="450"
+                                height="400"></td>
+                        <td>G[38, 16], R[88, 22]</td>
+                        <td>19.80 s</td>
+                    </tr>
+                    <tr>
+                        <td>lady</td>
+                        <td><img src="Project_1/images/large_image/lady_output.jpg" alt="Result on lady.tif" width="450"
+                                height="400"></td>
+                        <td>G[56, 10], R[120, 13]</td>
+                        <td>19.38 s</td>
+                    </tr>
+                    <tr>
+                        <td>melons</td>
+                        <td><img src="Project_1/images/large_image/melons_output.jpg" alt="Result on melon.tif"
+                                width="450" height="400"></td>
+                        <td>G[79, 9], R[182, 11]</td>
+                        <td>19.80 s</td>
+                    </tr>
+                    <tr>
+                        <td>onion_church</td>
+                        <td><img src="Project_1/images/large_image/onion_church_output.jpg"
+                                alt="Result on onion_church.tif" width="450" height="400"></td>
+                        <td>G[52, 24], R[107, 34]</td>
+                        <td>19.83 s</td>
+                    </tr>
+                    <tr>
+                        <td>sculpture</td>
+                        <td><img src="Project_1/images/large_image/sculpture_output.jpg" alt="Result on sculpture.tif"
+                                width="450" height="400"></td>
+                        <td>G[33, -11], R[140, -27]</td>
+                        <td>24.21 s</td>
+                    </tr>
+                    <tr>
+                        <td>self_portrait</td>
+                        <td><img src="Project_1/images/large_image/self_portrait_output.jpg"
+                                alt="Result on self_portrait.tif" width="450" height="400"></td>
+                        <td>G[77, 29], R[175, 37]</td>
+                        <td>22.40 s</td>
+                    </tr>
+                    <tr>
+                        <td>three_generations</td>
+                        <td><img src="Project_1/images/large_image/three_generations_output.jpg"
+                                alt="Result on three_generations.tif" width="450" height="400"></td>
+                        <td>G[56, 11], R[111, 7]</td>
+                        <td>23.01 s</td>
+                    </tr>
+                    <tr>
+                        <td>train</td>
+                        <td><img src="Project_1/images/large_image/train_output.jpg" alt="Result on train.tif"
+                                width="450" height="400"></td>
+                        <td>G[48, 2], R[84, 28]</td>
+                        <td>22.22 s</td>
+                    </tr>
+                </table>
+            </div>
+
+            <h3>Images of my own choice</h3>
+            <div style="text-align: center;">
+                <table border="1" class="center-table"
+                    style="width: 100%;  height: 500px; margin-left:auto; margin-right:auto;">
+                    <tr>
+                        <th>Name</th>
+                        <th>Image</th>
+                        <th>Offset</th>
+                        <th>Runtime</th>
+                    </tr>
+                    <tr>
+                        <td>Lilacs</td>
+                        <td>
+                            <img src="Project_1/images/large_image/Lilacs_output.jpg" alt="Result on Lilacs.tif"
+                                width="450" height="400">
+                        </td>
+                        <td>G[48, -8], R[96, -23]</td>
+                        <td>20.22 s</td>
+                    </tr>
+                    <tr>
+                        <td>Lastochkino_Gnezdo</td>
+                        <td><img src="Project_1/images/large_image/Lastochkino_Gnezdo_output.jpg"
+                                alt="Result on Lastochkino_Gnezdo.tif" width="450" height="400"></td>
+                        <td>G[-3, -2], R[76, -9]</td>
+                        <td>21.87 s</td>
+                    </tr>
+                    <tr>
+                        <td>In_Italy</td>
+                        <td><img src="Project_1/images/large_image/In_Italy_output.jpg" alt="Result on In_Italy.tif"
+                                width="450" height="400"></td>
+                        <td>G[40, 22], R[77, 36]</td>
+                        <td>22.08 s</td>
+                    </tr>
+                    <tr>
+                        <td>Details_of_Milan_Cathedral</td>
+                        <td><img src="Project_1/images/large_image/Details_of_Milan_Cathedral_output.jpg"
+                                alt="Result on Details_of_Milan_Cathedral.tif" width="450" height="400"></td>
+                        <td>G[-7, -17], R[3, -53]</td>
+                        <td>20.57 s</td>
+                    </tr>
+                </table>
+            </div>
+
+            <h2>Bells & Whistles</h2>
+            <p>In order to improve the quality of images, we designed two kinds of functions to
+                implement cropping and color correction on the images respectively.</p>
+            <h3>Automatic Cropping</h3>
+            <p>The "crop_image" function is designed to enhance image quality by removing unnecessary borders or padding
+                around an image.
+                Initially, it creates a smaller sub-image by cropping the top and left sides of the input image.
+                This cropped sub-image helps identify the borders of the main content.
+                Then, the function employs Canny edge detection on a grayscale version of the cropped sub-image.
+                The mean values of the detected edges along both vertical and horizontal directions are calculated.
+                The threshold for identifying significant edges is set to three times the mean value of the horizontal
+                edges.
+                The function then identifies the last significant edge along both the vertical and horizontal
+                directions,
+                ensuring that it accounts for irregularities in the content's positioning.
+                Finally, it uses these edge positions to crop the input image, effectively removing unwanted borders and
+                padding.</p>
+            <h3>Color Correction</h3>
+            <p>The "color_correct" function plays a crucial role in improving the color balance of an image.
+                First, it calculates the mean values for each color channel in the image,
+                providing an understanding of the image's overall color balance.
+                It computes scaling factors for the red and blue channels based on
+                the ratio of the mean green channel value to the mean value of the respective channel.
+                These scaling factors aim to correct color imbalances present in the image.
+                Next, the function applies color correction by scaling the red and blue channels individually.
+                This scaling process adjusts the color intensity of the channels, aligning them with the green channel,
+                which is often considered the reference for balanced color.
+                The output image is then created by combining the corrected red and blue channels with the original
+                green channel.</p>
+            <div style="text-align: center;">
+                <table border="1" class="center-table"
+                    style="width: 100%;  height: 500px; margin-left:auto; margin-right:auto;">
+                    <tr>
+                        <th>Before</th>
+                        <th>After</th>
+                    </tr>
+                    <tr>
+                        <td>
+                            <img src="Project_1/images/out/cathedral_output0.jpg" alt="Result on cathedral.jpg"
+                                width="450" height="400">
+                        </td>
+                        <td>
+                            <img src="Project_1/images/out_path/cathedral_output1.jpg"
+                                alt="Improved result on cathedral.jpg" width="450" height="400">
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <img src="Project_1/images/out/tobolsk_output0.jpg" alt="Result on tobolsk.jpg" width="450"
+                                height="400">
+                        </td>
+                        <td>
+                            <img src="Project_1/images/out_path/tobolsk_output1.jpg"
+                                alt="Improved result on tobolsk.jpg" width="450" height="400">
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <img src="Project_1/images/large_image/church_output.jpg" alt="Result on church.tif"
+                                width="450" height="400">
+                        </td>
+                        <td>
+                            <img src="Project_1/images/large_images_path/church_output.jpg"
+                                alt="Improved result on church.tif" width="450" height="400">
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <img src="Project_1/images/large_image/harvesters_output.jpg" alt="Result on harvesters.tif"
+                                width="450" height="400">
+                        </td>
+                        <td>
+                            <img src="Project_1/images/large_images_path/harvesters_output.jpg"
+                                alt="Improved result on harvesters.tif" width="450" height="400">
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <img src="Project_1/images/large_image/lady_output.jpg" alt="Result on lady.tif" width="450"
+                                height="400">
+                        </td>
+                        <td>
+                            <img src="Project_1/images/large_images_path/lady_output.jpg" alt="Result on lady.tif"
+                                width="450" height="400">
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <img src="Project_1/images/large_image/melons_output.jpg" alt="Result on melons.tif"
+                                width="450" height="400">
+                        </td>
+                        <td>
+                            <img src="Project_1/images/large_images_path/melons_output.jpg" alt="Result on melons.tif"
+                                width="450" height="400">
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <img src="Project_1/images/large_image/three_generations_output.jpg"
+                                alt="Result on three_generations.tif" width="450" height="400">
+                        </td>
+                        <td>
+                            <img src="Project_1/images/large_images_path/three_generations_output.jpg"
+                                alt="Result on three_generations.tif" width="450" height="400">
+                        </td>
+                    </tr>
+                </table>
+            </div>
+        </div>
+
+        <!-- Project 2 -->
+        <div id="module2" class="module">
+            <h1>CS 180 Project 2: Fun with Filters and Frequencies!</h1>
+            <p>By Zhiyao Jiang (jessica_jiangzy@berkeley.edu)</p>
+            <h2>Part 1: Fun with Filters</h2>
+            <h3>Part 1.1: Finite Difference Operator</h3>
+            <p>The finite difference operator we use is:
+            <div class="center1">
+                <img src="Project_2/images/part1_1/diff_op.png" alt="finite difference operator" width="300"
+                    height="85">
+            </div>
+            The Cameraman image is first retrieved from a specified URL.
+            Then the image is convolved with the finite difference operators which are mentioned aboved to get
+            the partial derivative in x and y of the cameraman image.
+            It then computes the gradient magnitude through taking the root of the sum of squares of the partials of the
+            image.
+            Finally, I take the threshold equals to 0.25 to gain the binary edge image.
+            </p>
+            <div class="center">
+                <img src="Project_2/images/part1_1/Part11_or_dx_dy.jpg" alt="Original vs. dx vs. dy" width="900"
+                    height="400">
+            </div>
+            <div class="image-container">
+                <div class="image-box">
+                    <img src="Project_2/images/part1_1/Part11_gra_mag_ima.jpg" alt="gradient magnitude" width="400"
+                        height="500">
+                    <p class="caption">Gradient Magnitude</p>
+                </div>
+                <div class="image-box">
+                    <img src="Project_2/images/part1_1/Part11_bin_edge_ima.jpg" alt="binary edge image" width="400"
+                        height="500">
+                    <p class="caption">Binary Edge Image</p>
+                </div>
+            </div>
+            <h3>Part 1.2: Derivative of Gaussian (DoG) Filter</h3>
+            <p>
+                In this part, kernel size of 7 and sigma of 2 is been used to establish the gaussian filter.
+
+                Difference between 1.1 and 1.2:
+                In 1.2, the edges detected from the derivatives appear more distinct and less noisy.
+                This improvement is mainly due to the image in 1.2 having lower frequencies after blurring.
+                As a result of reduced noise, the threshold value for edge detection could be decreased, which is 0.06
+                in this case.
+            </p>
+            <h4>Method 1: Blur then Derivative Convolve</h4>
+            <div class="center">
+                <img src="Project_2/images/part1_2/Part12_Ori_Smo.jpg" alt="Original vs. Smoothed" width="900"
+                    height="450">
+            </div>
+            <div class="center">
+                <img src="Project_2/images/part1_2/Part12_DoG_Gradient.jpg" alt="Method 1 Gradient Magnitude"
+                    width="1000" height="400">
+            </div>
+            <div class="image-container">
+                <div class="image-box">
+                    <img src="Project_2/images/part1_2/Part12_DoG_gau_bin_edge_ima.jpg" alt="Method 1 Binary Edge Image"
+                        width="400" height="500">
+                    <p class="caption">Binary Edge Image</p>
+                </div>
+            </div>
+            <h4>Method 2: Single Convolution</h4>
+            <p>Verification: From the result showed below, we can see that the results are the same
+                from both "blur then derivative convolve" and "single convolution".</p>
+            <div class="center3">
+                <img src="Project_2/images/part1_2/Part12_Gradient.jpg" alt="Method 2 Gradient Magnitude" width="1000"
+                    height="450">
+            </div>
+            <div class="image-container">
+                <div class="image-box">
+                    <img src="Project_2/images/part1_2/Part12_gau_bin_edge_ima.jpg" alt="Method 2 Binary Edge Image"
+                        width="400" height="500">
+                    <p class="caption">Binary Edge Image</p>
+                </div>
+            </div>
+            <h2>Part 2: Fun with Frequencies!</h2>
+            <h3>Part 2.1: Image "Sharpening"</h3>
+            <p>In this part, we apply a "sharpening filter" by implement the gaussian filter to the image first, and
+                then
+                subtract this blurred version from the original image to get the high frequencies of the image.
+                The kernel size is equals to 7, sigma is equals to 2 and alpha is equals to 2 when dealing with the taj
+                image</p>
+            <div class="center">
+                <img src="Project_2/images/part2_1/Part21_Ori_Sha_taj.jpg" alt="taj image" width="900" height="450">
+            </div>
+            <div class="center">
+                <img src="Project_2/images/part2_1/Part2_1_Pic1_result.jpg" alt="Effel Tower image" width="900"
+                    height="450">
+            </div>
+            <div class="center">
+                <img src="Project_2/images/part2_1/Part2_1_Pic2_result.jpg" alt="Louvre Museum image" width="900"
+                    height="450">
+            </div>
+            <div class="center">
+                <img src="Project_2/images/part2_1/Part2_1_Pic3_result.jpg" alt="Arc de Triomphe image" width="900"
+                    height="450">
+            </div>
+            <div class="center">
+                <img src="Project_2/images/part2_1/Part21_Ori_Smo_Sha.jpg" alt="Lenna image" width="1000" height="400">
+            </div>
+            <h3>Part 2.2: Hybrid Images</h3>
+            <p>In this part, we will create a hybrid image by combining two input images.
+                It first aligns the images, then applies Gaussian filters with different sigma values and the same
+                kennel size of 20
+                to generate low and high-frequency components.
+                These components are combined to create the hybrid image, emphasizing different details depending on the
+                sigma values.
+                The Gaussian and Laplacian pyramids are also generated for the hybrid image,
+                allowing for a multi-resolution analysis of its features and details.</p>
+            <h4>Example 1</h4>
+            <div class="image-container1">
+                <div class="image-box1">
+                    <img src="Project_2/images/part2_2/DerekPicture.jpg" alt="DerekPicture" width="200" height="300">
+                </div>
+                <div class="image-box1">
+                    <img src="Project_2/images/part2_2/nutmeg.jpg" alt="nutmeg" width="300" height="200">
+                </div>
+                <div class="image-box1">
+                    <img src="Project_2/images/part2_2/Result_1.jpg" alt="Result of ex1" width="210" height="300">
+                </div>
+            </div>
+            <h4>Example 2</h4>
+            <div class="image-container1">
+                <div class="image-box1">
+                    <img src="Project_2/images/part2_2/group2_1.jpg" alt="ex2 image 1" width="300" height="300">
+                </div>
+                <div class="image-box1">
+                    <img src="Project_2/images/part2_2/group2_2.jpg" alt="ex2 image 1" width="300" height="200">
+                </div>
+                <div class="image-box1">
+                    <img src="Project_2/images/part2_2/Result_3.jpg" alt="Result of ex2" width="200" height="200">
+                </div>
+            </div>
+            <h4>Example 3</h4>
+            <div class="image-container1">
+                <div class="image-box1">
+                    <img src="Project_2/images/part2_2/group3_1.jpg" alt="ex3 image 1" width="250" height="200">
+                </div>
+                <div class="image-box1">
+                    <img src="Project_2/images/part2_2/group3_2.jpg" alt="ex3 image 1" width="300" height="250">
+                </div>
+                <div class="image-box1">
+                    <img src="Project_2/images/part2_2/Result_4.jpg" alt="Result of ex3" width="250" height="250">
+                </div>
+            </div>
+            <h4>Example 4 (favourite)</h4>
+            <div class="image-container1">
+                <div class="image-box1">
+                    <img src="Project_2/images/part2_2/group1_1.jpg" alt="ex4 image 1" width="300" height="300">
+                </div>
+                <div class="image-box1">
+                    <img src="Project_2/images/part2_2/group1_2.jpg" alt="ex4 image 1" width="300" height="300">
+                </div>
+                <div class="image-box1">
+                    <img src="Project_2/images/part2_2/result_2.jpg" alt="Result of ex4" width="300" height="300">
+                </div>
+            </div>
+            <div class="image-container1">
+                <div class="image-box1">
+                    <img src="Project_2/images/part2_2/Part22_Input_freq_1.jpg" alt="Frequency of Input image 1"
+                        width="250" height="300">
+                    <p class="caption">Frequency of Input image 1</p>
+                </div>
+                <div class="image-box1">
+                    <img src="Project_2/images/part2_2/Part22_Input_freq_2.jpg" alt="Frequency of Input image 1"
+                        width="250" height="300">
+                    <p class="caption">Frequency of Input image 2</p>
+                </div>
+                <div class="image-box1">
+                    <img src="Project_2/images/part2_2/Part22_hybrid_freq.jpg" alt="Frequency of Hybrid Image"
+                        width="250" height="300">
+                    <p class="caption">Frequency of Hybrid Image</p>
+                </div>
+            </div>
+            <div class="image-container1">
+                <div class="image-box1">
+                    <img src="Project_2/images/part2_2/Part22_low_freq.jpg" alt="Low frequency" width="250"
+                        height="300">
+                    <p class="caption">Low Frequency</p>
+                </div>
+                <div class="image-box1">
+                    <img src="Project_2/images/part2_2/Part22_low_freq1_pic.jpg" alt="Image of Low frequency"
+                        width="200" height="200">
+                    <p class="caption">Image of Low Frequency</p>
+                </div>
+                <div class="image-box1">
+                    <img src="Project_2/images/part2_2/Part22_high_freq.jpg" alt="High frequency" width="250"
+                        height="300">
+                    <p class="caption">Low Frequency</p>
+                </div>
+                <div class="image-box1">
+                    <img src="Project_2/images/part2_2/Part22_high_freq_pic.jpg" alt="Image of High frequency"
+                        width="200" height="200">
+                    <p class="caption">Image of Low Frequency</p>
+                </div>
+            </div>
+            <h3>Part 2.3: Gaussian and Laplacian Stacks</h3>
+            <div class="image-container">
+                <div class="image-box1">
+                    <img src="Project_2/images/part2_3/LA_0.jpg" alt="LA level 0" width="350" height="250">
+                    <p class="caption">LA level 0</p>
+                </div>
+                <div class="image-box1">
+                    <img src="Project_2/images/part2_3/LB_0.jpg" alt="LB level 0" width="350" height="250">
+                    <p class="caption">LB level 0</p>
+                </div>
+                <div class="image-box1">
+                    <img src="Project_2/images/part2_3/blended_0.jpg" alt="blended level 0" width="350" height="250">
+                    <p class="caption">Blended level 0</p>
+                </div>
+            </div>
+            <div class="image-container">
+                <div class="image-box1">
+                    <img src="Project_2/images/part2_3/LA_1.jpg" alt="LA level 1" width="350" height="250">
+                    <p class="caption">LA level 1</p>
+                </div>
+                <div class="image-box1">
+                    <img src="Project_2/images/part2_3/LB_1.jpg" alt="LB level 1" width="350" height="250">
+                    <p class="caption">LB level 1</p>
+                </div>
+                <div class="image-box1">
+                    <img src="Project_2/images/part2_3/blended_1.jpg" alt="blended level 1" width="350" height="250">
+                    <p class="caption">Blended level 1</p>
+                </div>
+            </div>
+            <div class="image-container">
+                <div class="image-box1">
+                    <img src="Project_2/images/part2_3/LA_2.jpg" alt="LA level 2" width="350" height="250">
+                    <p class="caption">LA level 2</p>
+                </div>
+                <div class="image-box1">
+                    <img src="Project_2/images/part2_3/LB_2.jpg" alt="LB level 2" width="350" height="250">
+                    <p class="caption">LB level 2</p>
+                </div>
+                <div class="image-box1">
+                    <img src="Project_2/images/part2_3/blended_2.jpg" alt="blended level 2" width="350" height="250">
+                    <p class="caption">Blended level 2</p>
+                </div>
+            </div>
+            <div class="image-container">
+                <div class="image-box1">
+                    <img src="Project_2/images/part2_3/apple_collapse.jpg" alt="apple collapse" width="350"
+                        height="250">
+                    <p class="caption">apple collapse</p>
+                </div>
+                <div class="image-box1">
+                    <img src="Project_2/images/part2_3/orange_collapse.jpg" alt="orange collapse" width="350"
+                        height="250">
+                    <p class="caption">orange collapse</p>
+                </div>
+                <div class="image-box1">
+                    <img src="Project_2/images/part2_3/oraple_collapse.jpg" alt="oraple collapse" width="350"
+                        height="250">
+                    <p class="caption">oraple collapse</p>
+                </div>
+            </div>
+            <h3>Part 2.4: Multiresolution Blending (a.k.a. the oraple!)</h3>
+            <h4>Example 1</h4>
+            <div class="center4">
+                <img src="Project_2/images/part2_3/oraple_collapse.jpg" alt="oraple collapse" width="450" height="300">
+            </div>
+            <h4>Example 2</h4>
+            <div class="image-container1">
+                <div class="image-box">
+                    <img src="Project_2/images/part2_4/cola.jpg" alt="cola" width="500" height="450">
+                    <p class="caption">cola</p>
+                </div>
+                <div class="image-box">
+                    <img src="Project_2/images/part2_4/sprite.jpg" alt="sprite" width="500" height="450">
+                    <p class="caption">sprite</p>
+                </div>
+            </div>
+            <div class="image-container1">
+                <div class="image-box">
+                    <img src="Project_2/images/part2_4/LA_1_ex1.jpg" alt="LA_1_ex1" width="500" height="450">
+                    <p class="caption">LA level 1</p>
+                </div>
+                <div class="image-box">
+                    <img src="Project_2/images/part2_4/LB_1_ex1.jpg" alt="LB_1_ex1" width="500" height="450">
+                    <p class="caption">LB level 1</p>
+                </div>
+                <div class="image-box">
+                    <img src="Project_2/images/part2_4/blended_1_ex1.jpg" alt="blended_1_ex1" width="500" height="450">
+                    <p class="caption">blended level 1</p>
+                </div>
+            </div>
+            <div class="image-container1">
+                <div class="image-box">
+                    <img src="Project_2/images/part2_4/cola_collapse.jpg" alt="cola_collapse" width="500" height="450">
+                    <p class="caption">cola_collapse</p>
+                </div>
+                <div class="image-box">
+                    <img src="Project_2/images/part2_4/sprite_collapse.jpg" alt="sprite_collapse" width="500"
+                        height="450">
+                    <p class="caption">sprite_collapse</p>
+                </div>
+                <div class="image-box">
+                    <img src="Project_2/images/part2_4/cosprite_collapse.jpg" alt="cosprite_collapse" width="500"
+                        height="450">
+                    <p class="caption">cosprite_collapse</p>
+                </div>
+            </div>
+            <h3>Bells & Whistles (Extra Points)</h3>
+            <p>One of the most fascinating aspects of this assignment was learning about hybrid images
+                and their ability to create visual illusions.
+                The concept of combining low and high-frequency components from two images
+                to create a single image that appears differently when viewed from various distances was truly
+                intriguing.
+                This project illuminated the power of image processing techniques and the profound impact they
+                can have on our perception of visual information.
+                It's remarkable how a simple manipulation of frequency components can lead to a wide range of artistic
+                and perceptual effects,
+                making hybrid images a captivating field of study in computer vision and image processing.</p>
+
+        </div>
+
+        <!-- Project 3 -->
+        <div id="module3" class="module">
+            <h1>CS 180 Project 3: Face Morphing</h1>
+            <p>By Zhiyao Jiang (jessica_jiangzy@berkeley.edu)</p>
+            <h2>Part 1. Defining Correspondences</h2>
+            <p>In the first part of the project, we need to define the corresponding points on two images by hand
+                using <a
+                    href="https://inst.eecs.berkeley.edu/~cs194-26/fa22/upload/files/proj3/cs194-26-aex/tool.html">this
+                    labeling tool</a>
+                from last year's student. Using this tool, I can simply click on the corresponding points we want to
+                define
+                on two images to generate a '.json' file. Next, I focused on creating a triangulation of these
+                keypoints,
+                which serves as the basis for morphing.
+                I opted for a Delaunay triangulation due to its ability to avoid generating overly distorted triangles.
+                The results are shown below.
+            </p>
+            <div class="image-container">
+                <div class="image-box">
+                    <img src="Project_3/images/Morphing/image1_points.jpg" alt="Image1 points" width="420" height="450">
+                </div>
+                <div class="image-box">
+                    <img src="Project_3/images/Morphing/image2_points.jpg" alt="binary edge image" width="420"
+                        height="450">
+                </div>
+            </div>
+            <h2>Part 2. Computing the "Mid-way Face"</h2>
+            <p>After defining the corresponding points on two images, we can then compute the "Mid-way Face" between
+                them.</p>
+            <h3>Average Shape Calculation</h3>
+            <p>
+                First, I calculated the average shape by finding the average position of each keypoint in both image A
+                and image B.
+            </p>
+            <h3>Triangulation</h3>
+            <p>
+                Then, I used Delaunay triangulation to divide the average shape into a set of non-overlapping triangles.
+                This triangulation allowed us to perform localized transformations and color averaging,
+                ensuring smooth transitions between the two images.
+            </p>
+            <h3>Affine Warp</h3>
+            <p>
+                The heart of the morphing process lay in implementing an affine warp for each triangle.
+                For each pair of corresponding triangles in image A and image B,
+                I calculated an affine transformation matrix (A) that defined the geometric relationship between the
+                triangles.
+                This transformation was crucial for mapping the facial features from one image to the other.
+            </p>
+            <h3>Image Interpolation</h3>
+            <p>
+                With the affine transformation matrices in hand, we can now perform an inverse warp
+                to map the pixels from both images to the midway shape.
+                This involved generating a mask to define the region of interest for each triangle and
+                using interpolation functions to redistribute pixel values accurately.
+            </p>
+            <h3>Color Averaging</h3>
+            <p>
+                To create the mid-way face, we took the average of the colors from the corresponding pixels in image A
+                and image B
+                within each triangle. This color averaging process ensured that the mid-way face retained the
+                characteristics of both input images.
+            </p>
+            <p>There is the result of the "Mid-way Face"</p>
+            <div class="image-container">
+                <div class="image-box2">
+                    <img src="Project_3/images/Morphing/im.jpg" alt="Image 1" width="310" height="340">
+                    <caption>Image 1</caption>
+                </div>
+                <div class="image-box2">
+                    <img src="Project_3/images/Morphing/midway_face.jpg" alt="midway_face" width="310" height="340">
+                    <caption>Mid-way Face</caption>
+                </div>
+                <div class="image-box2">
+                    <img src="Project_3/images/Morphing/target_im.jpg" alt="Image 2" width="310" height="340">
+                    <caption>Image 2</caption>
+                </div>
+            </div>
+            <h2>Part 3. The Morph Sequence</h2>
+            <p>In Part 3, I created a morph sequence between these two input images.
+                I achieved this by developing a function called `morph`, which utilized point correspondences defined in
+                im1_pts and im2_pts,
+                along with a predefined triangulation structure, tri.
+                This function incorporated parameters warp_frac and dissolve_frac to control shape warping and
+                cross-dissolve,
+                allowing us to smoothly transition between the two images.
+                Below, you will find the results of this morphing process, showcasing the gradual transformation from
+                the initial image A to the target image B.</p>
+            <div style="text-align: center;">
+                <img src="Project_3/images/Morphing/output.gif" alt="Output of morph sequence" width="380" height="430">
+            </div>
+            <h2>Part 4. The "Mean face" of a population</h2>
+            <h3>The Average Face Shape</h3>
+            <p>In Task 4, I tackled the challenge of computing the "Mean face" of a given population using a dataset of
+                annotated faces.
+                I began by extracting the keypoint coordinates from the dataset.
+                To ensure proper alignment and consistency, I added four corner points to each set of keypoints.
+                Next, I calculated the mean face shape by taking the average of all the keypoints in the combined
+                dataset.</p>
+            <div class="image-container">
+                <div class="image-box1">
+                    <img src="Project_3/images/Population/test_01-1m.jpg" alt="test_01-1m.jpg" width="320" height="250">
+                    <caption>Keypoints in Image 01-1m</caption>
+                </div>
+                <div class="image-box1">
+                    <img src="Project_3/images/Population/test_02-1m.jpg" alt="test_02-1m.jpg" width="320" height="250">
+                    <caption>Keypoints in Image 02-1m</caption>
+                </div>
+                <div class="image-box1">
+                    <img src="Project_3/images/Population/midway_points.jpg" alt="midway_points.jpg" width="320"
+                        height="250">
+                    <caption>The Average Face Shape</caption>
+                </div>
+            </div>
+            <h3>The Average Face</h3>
+            <p>Then, I morphed each of the faces in the dataset into the average shape and compute the average face of
+                the population.</p>
+            <div class="image-container1">
+                <div class="image-box1">
+                    <img src="Project_3/images/Population/to_mean_01-1m.jpg" alt="to_mean_01-1m.jpg" width="400"
+                        height="300">
+                    <caption>Morphing result of Image 01-1m</caption>
+                </div>
+                <div class="image-box1">
+                    <img src="Project_3/images/Population/to_mean_02-1m.jpg" alt="to_mean_02-1m.jpg" width="400"
+                        height="300">
+                    <caption>Morphing result of Image 02-1m</caption>
+                </div>
+            </div>
+            <p>The result of the average face is shown below.</p>
+            <div class="center">
+                <img src="Project_3/images/Population/average_image.jpg" alt="average_image" width="650" height=“600“>
+            </div>
+            <p>The result of the average face of male and female is shown below.</p>
+            <div class="image-container1">
+                <div class="image-box1">
+                    <img src="Project_3/images/Population/average_man.jpg" alt="average_man.jpg" width="400"
+                        height="350">
+                    <caption>Average face for males</caption>
+                </div>
+                <div class="image-box1">
+                    <img src="Project_3/images/Population/average_woman.jpg" alt="average_woman.jpg" width="400"
+                        height="350">
+                    <caption>Average face for females</caption>
+                </div>
+            </div>
+            <h3>My Face & the Average Face</h3>
+            <div class="image-container1">
+                <div class="image-box1">
+                    <img src="Project_3/images/Population/metoDane.jpg" alt="metoDane.jpg" width="300" height="220">
+                    <caption>My face Warped into Avg. Dane's</caption>
+                </div>
+                <div class="image-box1">
+                    <img src="Project_3/images/Population/meDanemidwayface.jpg" alt="meDanemidwayface.jpg" width="300"
+                        height="220">
+                    <caption>Mid-Way Face of mine and Dane's</caption>
+                </div>
+                <div class="image-box1">
+                    <img src="Project_3/images/Population/Danetome.jpg" alt="Danetome.jpg" width="300" height="220">
+                    <caption>Avg. Dane's Warped into mine</caption>
+                </div>
+            </div>
+            <h2>Part 5. Caricatures: Extrapolating from the mean</h2>
+            <p>In Task 5, I created exaggerated representations of myself
+                by extrapolating from the population mean I previously computed.
+                This process involves taking the average shape I derived and using it as a reference point.
+                Similar to how caricaturists accentuate distinctive features,
+                I applied this concept to our facial keypoint representations.
+                Initially, I subtracted the mean face from my face,
+                resulting in a vector that highlights how the facial features deviate from the population average.
+                This vector essentially encapsulates the uniqueness of their facial characteristics.
+                To craft the caricature, I added a scaled version of this vector back to my face.
+                By doing so, I emphasized their idiosyncratic traits,
+                amplifying distinct facial attributes to create a caricature that showcased my unique features
+                in a playful and exaggerated manner.</p>
+            <div class="image-container1">
+                <div class="image-box1">
+                    <img src="Project_3/images/Caricatures/to_mean_caric_exp_0.png" alt="to_mean_caric_exp_0.png"
+                        width="300" height="220">
+                    <caption>α = 0</caption>
+                </div>
+                <div class="image-box1">
+                    <img src="Project_3/images/Caricatures/to_mean_caric_exp_1.png" alt="to_mean_caric_exp_1.png"
+                        width="300" height="220">
+                    <caption>α = 0.2</caption>
+                </div>
+                <div class="image-box1">
+                    <img src="Project_3/images/Caricatures/to_mean_caric_exp_2.png" alt="to_mean_caric_exp_2.png"
+                        width="300" height="220">
+                    <caption>α = 0.4</caption>
+                </div>
+            </div>
+            <div class="image-container">
+                <div class="image-box1">
+                    <img src="Project_3/images/Caricatures/to_mean_caric_exp_3.png" alt="to_mean_caric_exp_3.png"
+                        width="400" height="300">
+                    <caption>α = 0.6</caption>
+                </div>
+                <div class="image-box1">
+                    <img src="Project_3/images/Caricatures/to_mean_caric_exp_4.png" alt="to_mean_caric_exp_4.png"
+                        width="400" height="300">
+                    <caption>α = 0.8</caption>
+                </div>
+            </div>
+            <h2>Bells and Whistles</h2>
+            <h3>How my face changed over time</h3>
+            <p>I made a morphing music video on a theme that shows how my face changed over time.
+                <a href="https://youtube.com/shorts/VEFJsgAXM44?feature=share" target="_blank">video here</a>
+            </p>
+            <h3>Change smile to my face</h3>
+            <div class="image-container1">
+                <div class="image-box1">
+                    <img src="Project_3/images/Extra/me.jpg" alt="me.jpg" width="300" height="300">
+                </div>
+                <div class="image-box1">
+                    <img src="Project_3/images/Extra/metosmile.gif" alt="metosmile.gif" width="300" height="300">
+                </div>
+                <div class="image-box1">
+                    <img src="Project_3/images/Extra/smile.jpg" alt="smile.jpg" width="300" height="300">
+                </div>
+            </div>
+        </div>
+
+        <!-- Project 4 -->
+        <div id="module4" class="module">
+            <h1>CS 180 Project 4: [Auto] Stitching Photo Mosaics</h1>
+            <p>By Zhiyao Jiang (jessica_jiangzy@berkeley.edu)</p>
+            <h2>1. Shoot the Pictures</h2>
+            <p>I obtained the photographs needed for this project by following specific guidelines to ensure that
+                the transforms between them are projective, also known as perspective transforms.
+                I used my phone to take some pictures in the campus,
+                ensuring it was set to the highest resolution for accurate homography calculations.
+                The photographs were captured from the same point of view but with different view directions,
+                creating overlapping fields of view.
+                To maintain consistency, I aimed to shoot the pictures as close together in time as possible to prevent
+                subject movement and significant changes in lighting.</p>
+            <div class="centered-content">
+                <p>Dana St.</p>
+            </div>
+            <div class="image-container">
+                <div class="image-box">
+                    <img src="Project_4/images/assets/6_left.jpg" alt="6_left.jpg" width="400" height="450">
+                    <caption>Left</caption>
+                </div>
+                <div class="image-box">
+                    <img src="Project_4/images/assets/6_right.jpg" alt="assets/6_right.jpg" width="400" height="450">
+                    <caption>Right</caption>
+                </div>
+            </div>
+            <div class="centered-content">
+                <p>Outside of the Li Ka-shing Building</p>
+            </div>
+            <div class="image-container">
+                <div class="image-box">
+                    <img src="Project_4/images/assets/1_left.jpg" alt="1_left.jpg" width="400" height="450">
+                    <caption>Left</caption>
+                </div>
+                <div class="image-box">
+                    <img src="Project_4/images/assets/1_right.jpg" alt="assets/1_right.jpg" width="400" height="450">
+                    <caption>Right</caption>
+                </div>
+            </div>
+            <div class="centered-content">
+                <p>The log cabin opposite Haas Pavilion</p>
+            </div>
+            <div class="image-container">
+                <div class="image-box">
+                    <img src="Project_4/images/assets/4_left.jpg" alt="4_left.jpg" width="400" height="450">
+                    <caption>Left</caption>
+                </div>
+                <div class="image-box">
+                    <img src="Project_4/images/assets/4_right.jpg" alt="assets/4_right.jpg" width="400" height="450">
+                    <caption>Right</caption>
+                </div>
+            </div>
+
+            <h2>2. Recover Homographies</h2>
+            <p>To achieve alignment between images, I employed the concept of homography, represented as p’=Hp,
+                where H is a 3x3 matrix with 8 degrees of freedom (the scaling factor in the lower right corner can be
+                set to 1).
+                To recover the homography, I relied on a set of (p’,p) pairs representing corresponding points from two
+                images.
+                I developed a function of the form 'H = computeH(im1_pts,im2_pts)' to compute the 3x3 homography matrix,
+                where 'im1_pts' and 'im2_pts' are n-by-2 matrices containing the (x,y) coordinates of n point
+                correspondences.
+                To compute the entries in the H matrix, I established a linear system with n equations (Ah=b),
+                where h is a vector holding the 8 unknown entries of H. If n=4, a standard technique can solve the
+                system.
+                However, for stability and noise reduction, more than 4 correspondences should be provided,
+                creating an overdetermined system to be solved using least-squares.
+
+            <h2>3. Warp the Images</h2>
+            <p>With the obtained homography matrix, I was able to warp our images to achieve alignment with one another.
+            </p>
+            <div class="centered-content">
+                <p>Dana St. (Warped)</p>
+            </div>
+            <div class="image-container">
+                <div class="image-box">
+                    <img src="Project_4/images/assets/wrap_image_6_left.jpeg" alt="wrap_image_6_left.jpeg" width="400"
+                        height="450">
+                    <caption>Left</caption>
+                </div>
+                <div class="image-box">
+                    <img src="Project_4/images/assets/wrap_image_6_right.jpeg" alt="wrap_image_6_right.jpeg" width="400"
+                        height="450">
+                    <caption>Right</caption>
+                </div>
+            </div>
+            <div class="centered-content">
+                <p>Outside of the Li Ka-shing Building (Warped)</p>
+            </div>
+            <div class="image-container">
+                <div class="image-box">
+                    <img src="Project_4/images/assets/wrap_image_1_left.jpeg" alt="wrap_image_1_left.jpeg" width="400"
+                        height="450">
+                    <caption>Left</caption>
+                </div>
+                <div class="image-box">
+                    <img src="Project_4/images/assets/wrap_image_1_right.jpeg" alt="wrap_image_1_right.jpeg" width="400"
+                        height="450">
+                    <caption>Right</caption>
+                </div>
+            </div>
+            <div class="centered-content">
+                <p>The log cabin opposite Haas Pavilion (Warped)</p>
+            </div>
+            <div class="image-container">
+                <div class="image-box">
+                    <img src="Project_4/images/assets/wrap_image_4_left.jpeg" alt="wrap_image_4_left.jpeg" width="400"
+                        height="450">
+                    <caption>Left</caption>
+                </div>
+                <div class="image-box">
+                    <img src="Project_4/images/assets/wrap_image_4_right.jpeg" alt="wrap_image_4_right.jpeg" width="400"
+                        height="450">
+                    <caption>Right</caption>
+                </div>
+            </div>
+
+            <h2>4. Image Rectification</h2>
+            <p>In order to rectify an image, I focused on transforming it so that a specific plane within the image
+                becomes frontal-parallel.
+                To test the accuracy of our homography and warping procedures,
+                I captured sample images containing planar surfaces and applied the rectification process.
+                In scenarios where only one image was available, such as ground plane rectification,
+                I established point correspondences based on prior knowledge of the image.
+                For instance, if I knew that the tiles on the floor were square,
+                I manually selected and stored the coordinates of the four corners of a tile as 'im1_pts', while
+                'im2_pts'
+                were defined to be a square, e.g., [0 0; 0 1; 1 0; 1 1].
+                This allowed us to create a homography and rectify the image effectively.</p>
+            <div class="centered-content">
+                <p>Airplane</p>
+            </div>
+            <div class="image-container2">
+                <div class="image-box1">
+                    <img src="Project_4/images/assets/airplane.jpg" alt="airplane.jpg" width="300" height="350">
+                    <caption>Original</caption>
+                </div>
+                <div class="image-box1">
+                    <img src="Project_4/images/assets/airplaneresult.jpeg" alt="airplaneresult.jpeg" width="300"
+                        height="350">
+                    <caption>Rectified</caption>
+                </div>
+            </div>
+            <div class="centered-content">
+                <p>Cropped</p>
+            </div>
+            <div class="center">
+                <img src="Project_4/images/assets/airplanecrop.png" alt="airplanecrop.png" width="500" height="450">
+            </div>
+            <div class="centered-content">
+                <p>Book</p>
+            </div>
+            <div class="image-container2">
+                <div class="image-box1">
+                    <img src="Project_4/images/assets/rectangle.jpeg" alt="rectangle.jpeg" width="300" height="350">
+                    <caption>Original</caption>
+                </div>
+                <div class="image-box1">
+                    <img src="Project_4/images/assets/rectangle_warp.jpeg" alt="rectangle_warp.jpeg" width="300"
+                        height="350">
+                    <caption>Rectified</caption>
+                </div>
+            </div>
+            <div class="centered-content">
+                <p>Cropped</p>
+            </div>
+            <div class="center">
+                <img src="Project_4/images/assets/rectangle_crop.png" alt="airplanecrop.png" width="400" height="450">
+            </div>
+
+            <h2>5. Blend the images into a mosaic</h2>
+            <p>To create our image mosaic, I meticulously warped the images to ensure proper registration.
+                Instead of simply overlaying one image onto another, which could result in undesirable edge artifacts,
+                I adopted a weighted averaging approach.
+                This involved determining how to blend the images effectively to achieve visually pleasing results.
+                Our approach involved considering the entire mosaic and focusing on the overlap between aligned images.
+                For each pixel in the overlap region, I calculated blending weights based on the distance to the nearest
+                edge
+                within the respective images. For instance, when determining the weight for a pixel (x, y) in image 1,
+                I assessed the distance to the nearest edge of image 1 from (x, y) and the distance to the closest edge
+                in image 2.
+                The weight was then computed as 'dist_im1 / (dist_im1 + dist_im2)'.
+                This approach favored pixels deep within an image and assigned lower weights to pixels near the image
+                edges,
+                factoring in distance information from the other image.
+                The resulting mosaic showcases our effective blending technique, ensuring a seamless transition between
+                images.
+            </p>
+            <div class="centered-content">
+                <p>Dana St. Mosaic</p>
+            </div>
+            <div class="center">
+                <img src="Project_4/images/assets/merge_image_6_left.jpeg" alt="merge_image_6_left.jpeg" width="650"
+                    height="450">
+            </div>
+            <div class="centered-content">
+                <p>Dana St. Mosaic (Cropped)</p>
+            </div>
+            <div class="center">
+                <img src="Project_4/images/assets/cropped_image_6_left.png" alt="cropped_image_6_left.png" width="650"
+                    height="450">
+            </div>
+            <div class="centered-content">
+                <p>Outside of the Li Ka-shing Building Mosaic</p>
+            </div>
+            <div class="center">
+                <img src="Project_4/images/assets/merge_image_1_left.jpeg" alt="merge_image_1_left.jpeg" width="650"
+                    height="450">
+            </div>
+            <div class="centered-content">
+                <p>Outside of the Li Ka-shing Building Mosaic (Cropped)</p>
+            </div>
+            <div class="center">
+                <img src="Project_4/images/assets/cropped_image_1.png" alt="cropped_image_1.png" width="650"
+                    height="450">
+            </div>
+            <div class="centered-content">
+                <p>The log cabin opposite Haas Pavilion</p>
+            </div>
+            <div class="center">
+                <img src="Project_4/images/assets/merge_image_4_left.jpeg" alt="merge_image_4_left.jpeg" width="650"
+                    height="450">
+            </div>
+            <div class="centered-content">
+                <p>The log cabin opposite Haas Pavilion (Cropped)</p>
+            </div>
+            <div class="center">
+                <img src="Project_4/images/assets/cropped_image_4_left.png" alt="cropped_image_4_left.png" width="650"
+                    height="450">
+            </div>
+
+            <h2>6. The most coolest thing I have learned</h2>
+            <p>The most significant insight gained from this part is the power of homography transformations
+                in achieving image alignment and perspective corrections. By understanding how to capture and process
+                images,
+                recover homographies, and perform image rectification and blending,
+                I've acquired the ability to seamlessly combine multiple images into a visually coherent mosaic,
+                which is a fascinating and practical application of computer vision techniques.</p>
+        </div>
+
+        <!-- Project 5 -->
+        <div id="module5" class="module">
+            <h1>CS 180 Project 5: Neural Radiance Field!</h1>
+            <p>By Zhiyao Jiang (jessica_jiangzy@berkeley.edu)</p>
+            <h2>Part 1: Fit a Neural Field to a 2D Image</h2>
+            <p>In the first part of our project,
+                I start by building a Multilayer Perceptron (MLP) with Sinusoidal Positional Encoding (PE)
+                that intake 2D pixel coordinates (x, y) and yield corresponding RGB color outputs.
+                The structure of the MLP is shown in the image below.
+            </p>
+            <div class="center4">
+                <img src="Project_5/images/part1network.png" alt="part1network.png" width=600 height=200>
+            </div>
+            <p>The network is designed with several layers and uses specific functions like ReLU and Sigmoid to make
+                sure the
+                colors are predicted correctly.
+                To handle large images without overloading the computer's memory, it only processes a batch of pixels to
+                work
+                with at a time.
+                I train this network by adjusting its parameters slightly each time, using Adam optimization,
+                and check my work by measuring the image quality with MSE Loss and PSNR. The results of tuning the
+                hyperparameters are as follows.
+            </p>
+            <h3>Fox</h3>
+            <div class="centered-content">
+                <p>N_pixels = 10000, batch_size = 100, L = 10, num_epochs = 1000, lr = 1e-2</p>
+            </div>
+            <div class="image-container">
+                <div class="image-box2">
+                    <img src="Project_5/images/fox_N_pixels10000_batch100_freq10_epochs1000.png"
+                        alt="fox_N_pixels10000_batch100_freq10_epochs1000.png" width=auto height=auto>
+                    <caption>Predicted image</caption>
+                </div>
+                <div class="image-box2">
+                    <img src="Project_5/images/fox_N_pixels10000_batch100_freq10_epochs1000_MSELoss.png"
+                        alt="fox_N_pixels10000_batch100_freq10_epochs1000_MSELoss.png" width=auto height=auto>
+                    <caption>MSE Loss</caption>
+                </div>
+                <div class="image-box2">
+                    <img src="Project_5/images/fox_N_pixels10000_batch100_freq10_epochs1000_TrainingPSNR.png"
+                        alt="fox_N_pixels10000_batch100_freq10_epochs1000_TrainingPSNR.png" width=auto height=auto>
+                    <caption>PSNR</caption>
+                </div>
+            </div>
+            <div class="centered-content">
+                <p>N_pixels = 10000, batch_size = 100, L = 10, num_epochs = 2000, lr = 1e-2</p>
+            </div>
+            <div class="image-container">
+                <div class="image-box2">
+                    <img src="Project_5/images/fox_N_pixels10000_batch100_freq10_epochs2000.png"
+                        alt="fox_N_pixels10000_batch100_freq10_epochs2000.png" width=auto height=auto>
+                    <caption>Predicted image</caption>
+                </div>
+                <div class="image-box2">
+                    <img src="Project_5/images/fox_N_pixels10000_batch100_freq10_epochs2000_MSELoss.png"
+                        alt="fox_N_pixels10000_batch100_freq10_epochs2000_MSELoss.png" width=auto height=auto>
+                    <caption>MSE Loss</caption>
+                </div>
+                <div class="image-box2">
+                    <img src="Project_5/images/fox_N_pixels10000_batch100_freq10_epochs2000_TrainingPSNR.png"
+                        alt="fox_N_pixels10000_batch100_freq10_epochs2000_TrainingPSNR.png" width=auto height=auto>
+                    <caption>PSNR</caption>
+                </div>
+            </div>
+            <div class="centered-content">
+                <p>N_pixels = 10000, batch_size = 100, L = 10, num_epochs = 3000, lr = 1e-2</p>
+            </div>
+            <div class="image-container">
+                <div class="image-box2">
+                    <img src="Project_5/images/fox_N_pixels10000_batch100_freq10_epochs3000.png"
+                        alt="fox_N_pixels10000_batch100_freq10_epochs3000.png" width=auto height=auto>
+                    <caption>Predicted image</caption>
+                </div>
+                <div class="image-box2">
+                    <img src="Project_5/images/fox_N_pixels10000_batch100_freq10_epochs3000_MSELoss.png"
+                        alt="fox_N_pixels10000_batch100_freq10_epochs3000_MSELoss.png" width=auto height=auto>
+                    <caption>MSE Loss</caption>
+                </div>
+                <div class="image-box2">
+                    <img src="Project_5/images/fox_N_pixels10000_batch100_freq10_epochs3000_TrainingPSNR.png"
+                        alt="fox_N_pixels10000_batch100_freq10_epochs3000_TrainingPSNR.png" width=auto height=auto>
+                    <caption>PSNR</caption>
+                </div>
+            </div>
+            <div class="centered-content">
+                <p>N_pixels = 100000, batch_size = 100, L = 10, num_epochs = 3000, lr = 1e-2</p>
+            </div>
+            <div class="image-container">
+                <div class="image-box2">
+                    <img src="Project_5/images/fox_N_pixels100000_batch100_freq10_epochs3000.png"
+                        alt="fox_N_pixels100000_batch100_freq10_epochs3000.png" width=auto height=auto>
+                    <caption>Predicted image</caption>
+                </div>
+                <div class="image-box2">
+                    <img src="Project_5/images/fox_N_pixels100000_batch100_freq10_epochs3000_MSELoss.png"
+                        alt="fox_N_pixels100000_batch100_freq10_epochs3000_MSELoss.png" width=auto height=auto>
+                    <caption>MSE Loss</caption>
+                </div>
+                <div class="image-box2">
+                    <img src="Project_5/images/fox_N_pixels100000_batch100_freq10_epochs3000_TrainingPSNR.png"
+                        alt="fox_N_pixels100000_batch100_freq10_epochs3000_TrainingPSNR.png" width=auto height=auto>
+                    <caption>PSNR</caption>
+                </div>
+            </div>
+            <div class="centered-content">
+                <p>N_pixels = 100000, batch_size = 100, L = 10, num_epochs = 3000</p>
+                <p>Tuning parameter: learning rate</p>
+            </div>
+            <div class="image-container">
+                <div class="image-box2">
+                    <img src="Project_5/images/tuning_hyperparameters/tuningfox_N_pixels100000_batch100_freq10_epochs3000_lr0.1.png"
+                        alt="tuningfox_N_pixels100000_batch100_freq10_epochs3000_lr0.1.png" width=auto height=auto>
+                    <caption>lr = 0.1</caption>
+                </div>
+                <div class="image-box2">
+                    <img src="Project_5/images/tuning_hyperparameters/tuningfox_N_pixels100000_batch100_freq10_epochs3000_lr0.01.png"
+                        alt="tuningfox_N_pixels100000_batch100_freq10_epochs3000_lr0.01.png" width=auto height=auto>
+                    <caption>lr = 0.01</caption>
+                </div>
+                <div class="image-box2">
+                    <img src="Project_5/images/tuning_hyperparameters/tuningfox_N_pixels100000_batch100_freq10_epochs3000_lr0.001.png"
+                        alt="tuningfox_N_pixels100000_batch100_freq10_epochs3000_lr0.001.png" width=auto height=auto>
+                    <caption>lr = 0.001</caption>
+                </div>
+            </div>
+            <div class="centered-content">
+                <p>N_pixels = 100000, batch_size = 100, num_epochs = 3000, lr = 1e-2</p>
+                <p>Tuning parameter: L (highest frequency level)</p>
+            </div>
+            <div class="image-container">
+                <div class="image-box2">
+                    <img src="Project_5/images/tuning_hyperparameters/tuningfox_N_pixels100000_batch100_freq10_epochs3000.png"
+                        alt="tuningfox_N_pixels100000_batch100_freq10_epochs3000.png" width=auto height=auto>
+                    <caption>L = 10</caption>
+                </div>
+                <div class="image-box2">
+                    <img src="Project_5/images/tuning_hyperparameters/tuningfox_N_pixels100000_batch100_freq20_epochs3000.png"
+                        alt="tuningfox_N_pixels100000_batch100_freq20_epochs3000.png" width=auto height=auto>
+                    <caption>L = 20</caption>
+                </div>
+                <div class="image-box2">
+                    <img src="Project_5/images/tuning_hyperparameters/tuningfox_N_pixels100000_batch100_freq30_epochs3000.png"
+                        alt="tuningfox_N_pixels100000_batch100_freq30_epochs3000.png" width=auto height=auto>
+                    <caption>L = 30</caption>
+                </div>
+            </div>
+            <p>After tuning hyperparameters, I choose N_pixels = 1000000, batch_size = 100, L = 10, num_epochs = 3000 to
+                generate the final predicted image and compare it with the original image.</p>
+            <div class="image-container">
+                <div class="image-box2">
+                    <img src="Project_5/images/fox.jpg" alt="fox.jpg" width=800 height=325>
+                    <caption>Original Image</caption>
+                </div>
+                <div class="image-box2">
+                    <img src="Project_5/images/fox_N_pixels1000000_batch100_freq10_epochs3000.png"
+                        alt="fox_N_pixels1000000_batch100_freq10_epochs3000.png" width=auto height=auto>
+                    <caption>Final Result</caption>
+                </div>
+            </div>
+
+            <h3>Lenna</h3>
+            <div class="centered-content">
+                <p>N_pixels = 10000, batch_size = 100, L = 10, lr = 1e-2</p>
+            </div>
+            <div class="image-container">
+                <div class="image-box2">
+                    <img src="Project_5/images/part1_lenna/Lenna_N_pixels10000_batch100_freq10_epochs100.png"
+                        alt="Lenna_N_pixels10000_batch100_freq10_epochs100.png" width=auto height=auto>
+                    <caption>100 epochs</caption>
+                </div>
+                <div class="image-box2">
+                    <img src="Project_5/images/part1_lenna/Lenna_N_pixels10000_batch100_freq10_epochs1000.png"
+                        alt="Lenna_N_pixels10000_batch100_freq10_epochs1000.png" width=auto height=auto>
+                    <caption>1000 epochs</caption>
+                </div>
+                <div class="image-box2">
+                    <img src="Project_5/images/part1_lenna/Lenna_N_pixels10000_batch100_freq10_epochs2000.png"
+                        alt="Lenna_N_pixels10000_batch100_freq10_epochs2000.png" width=auto height=auto>
+                    <caption>2000 epochs</caption>
+                </div>
+            </div>
+            <div class="centered-content">
+                <p> batch_size = 100, L = 10, num_epochs = 3000</p>
+            </div>
+            <div class="image-container">
+                <div class="image-box2">
+                    <img src="Project_5/images/part1_lenna/Lenna_N_pixels10000_batch100_freq10_epochs3000.png"
+                        alt="Lenna_N_pixels10000_batch100_freq10_epochs3000.png" width=auto height=auto>
+                    <caption>10000 pixels</caption>
+                </div>
+                <div class="image-box2">
+                    <img src="Project_5/images/part1_lenna/Lenna_N_pixels100000_batch100_freq10_epochs3000.png"
+                        alt="Lenna_N_pixels100000_batch100_freq10_epochs3000.png" width=auto height=auto>
+                    <caption>100000 pixels</caption>
+                </div>
+                <div class="image-box2">
+                    <img src="Project_5/images/part1_lenna/Lenna_N_pixels1000000_batch100_freq10_epochs3000.png"
+                        alt="Lenna_N_pixels1000000_batch100_freq10_epochs3000.png" width=auto height=auto>
+                    <caption>1000000 pixels</caption>
+                </div>
+            </div>
+
+
+            <h2>Part 2: Fit a Neural Radiance Field from Multi-view Images</h2>
+            <h3>Part 2.1: Create Rays from Cameras</h3>
+            <h4>Camera to World Coordinate Conversion</h4>
+            <p>In the implementation of camera-to-world coordinate transformation,
+                I develop a function <code>transform(c2w, X_c, N)</code> to convert camera space coordinates to world
+                space.
+                This function handles batches of coordinates, making it suitable for processing multiple points
+                simultaneously.
+                It first extends each coordinate from \( (x_c, y_c, z_c) \) to \( (x_c, y_c, z_c, 1) \) using
+                homogeneous
+                coordinates.
+                Then, it applies the camera-to-world transformation matrix \( c2w \) to these extended coordinates using
+                numpy's
+                `np.einsum` for efficient batch processing.
+                Finally, it extracts the transformed 3D world coordinates by removing the fourth dimension from the
+                results.
+            </p>
+            <h4>Pixel to Camera Coordinate Conversion</h4>
+            <p>Then, I implement the <code>pixel_to_camera</code> function to convert coordinates from the pixel
+                coordinate
+                system back to the camera coordinate system.
+                The function is designed to handle batch processing, allowing multiple points to be transformed
+                simultaneously.
+                First, the function augments the 2D pixel coordinates \( (u, v) \) with a third dimension to create
+                homogeneous
+                coordinates \( (u, v, 1) \).
+                It then scales these coordinates by the depth `s`, which is the distance along the optical axis.
+                Next, the function applies the inverse of the camera's intrinsic matrix `K` to these scaled coordinates.
+                This is achieved using numpy's `np.linalg.inv` to invert `K` and `np.einsum` for efficient matrix
+                multiplication, particularly useful for batched operations.
+                The result is a set of coordinates in the camera coordinate system.</p>
+            <h4>Pixel to Ray</h4>
+            <p>In the <code>pixel_to_ray</code> function, I convert pixel coordinates to rays with origins and
+                directions for a
+                pinhole camera model.
+                First, pixel coordinates are transformed to camera space, then to world space, using depth \( s = 1 \).
+                The ray origins \( r_o \) are computed from the camera-to-world matrix \( c2w \),
+                and the directions \( r_d \) are the normalized vectors from the ray origins to the world space points.
+                This function efficiently handles batches of pixels, crucial for processing multiple rays simultaneously
+                in 3D
+                graphics applications.</p>
+
+            <h3>Part 2.2: Sampling</h3>
+            <h4>Sampling Rays from Images</h4>
+            <p>In order to sample rays from images, I implement the function <code>sampling_rays_from_images</code>.
+                I chose the second option for sampling, which involves flattening all pixels from all images and
+                performing a
+                global sampling.
+                First, I create a grid of pixel coordinates for each image and added 0.5 to each \( uv \) coordinate to
+                account
+                for the offset from the image coordinate to the pixel center.
+                I then combine these coordinates into a large array representing all the pixels across all images.
+                Using this combined array, I randomly select N pixel coordinates for ray sampling.
+                For each sampled pixel, I find the corresponding camera-to-world transformation matrices and transform
+                these
+                pixel coordinates into rays,
+                including their origins and directions, using the <code>pixel_to_ray</code> function I implement above.
+            </p>
+            <h4>Sampling Points along Rays</h4>
+            <p>Next, I implement a function <code>sampling_points</code> to sample points along rays for a 3D scene.
+                I uniformly create sample points along each ray using <code>np.linspace(near, far, n_samples)</code>,
+                with
+                \(near\) and \(far\) set to 2.0 and 6.0, respectively.
+                To prevent overfitting during training, I introduced a random perturbation to these points,
+                achieved by adding a small random value multiplied by \(t_{width}\) to each sample point.
+                This approach ensures that each training iteration touches upon a slightly different set of points along
+                the
+                ray.
+                The 3D coordinates of these sample points were then calculated using the ray origins \(r_o\) and
+                directions
+                \(r_d\).
+                This method effectively generates a dense set of 3D points for each ray, crucial for accurately training
+                the
+                Neural Radiance Field model.
+            </p>
+
+            <h3>Part 2.3: Putting the Dataloading All Together</h3>
+            <p>Similar to Part 1, this task involves writing a dataloader that randomly samples pixels from multiple
+                images.
+                However, unlike Part 1, the dataloader now also converts these pixel coordinates into rays,
+                outputting the ray origin, direction, and pixel colors.
+                To ensure the implementation is correct, a provided visualization code plots the cameras, rays, and
+                samples in
+                3D.
+                Below is the resulting visualization.
+            </p>
+            <div class="centered-content">
+                <p>N_rays = 100, n_samples = 32</p>
+            </div>
+            <div class="center2">
+                <img src="Project_5/images/100rays32points.png" alt="100rays32points.png" width=auto height=auto>
+            </div>
+            <div class="centered-content">
+                <p>N_rays = 1000, n_samples = 32</p>
+            </div>
+            <div class="center2">
+                <img src="Project_5/images/1000rays32points.png" alt="1000rays32points.png" width=auto height=auto>
+            </div>
+
+            <h3>Part 2.4: Neural Radiance Field</h3>
+            <p>In this part, I construct a Neural Radiance Field (NeRF) network to predict the density and color of 3D
+                samples.
+                The network, modeled after the architecture shown in the image below, takes in 3D world coordinates and
+                a 3D ray
+                direction vector as input.
+                It outputs both the color, using a Sigmoid function to ensure values are within the (0, 1) range,
+                and the density, using a ReLU function to ensure positive values.
+                The ray direction is encoded with a lower frequency positional encoding (PE) to condition the color
+                prediction
+                on the view direction.
+                To tackle the complexity of 3D representation, the MLP was designed deeper with input injection via
+                concatenation at the midpoint,
+                a strategy aiding deep networks in preserving information about the input throughout the layers.
+            </p>
+            <div class="center5">
+                <img src="Project_5/images/nerf.png" alt="nerf.png" width=800 height=300>
+            </div>
+            <h3>Part 2.5: Volume Rendering</h3>
+            <p>In the last part of the project, I implement the volume rendering function in PyTorch to compute the
+                rendered
+                color of 3D points along rays.
+                Using the given densities and colors at each sample point, along with the step size between points,
+                I calculated the transmittance and weights for each color.
+                This involved using <code>torch.cumsum</code> to accumulate the densities and then applying the volume
+                rendering
+                formula to get the weights.
+                The rendered colors for each ray were then obtained by summing the product of the weights and the
+                colors.
+                This implementation allows the rendering process to be differentiable, enabling backpropagation for
+                network
+                training.
+            </p>
+            <h3>Training Model & Final Result</h3>
+            <h4>N_pixel = 20000, n_samples = 64, lr = 5e-4, num_epochs = 50000</h4>
+            <div class="centered-content">
+                <p>validation image 4</p>
+            </div>
+            <div class="image-container">
+                <div class="image-box2">
+                    <img src="Project_5/images/lego/lego_imgval4_N_rays20000_train_epochs499_lr0.0005_.png"
+                        alt="lego_imgval4_N_rays20000_train_epochs499_lr0.0005_.png" width=auto height=auto>
+                    <caption>500 epochs</caption>
+                </div>
+                <div class="image-box2">
+                    <img src="Project_5/images/lego/lego_imgval4_N_rays20000_train_epochs999_lr0.0005_.png"
+                        alt="lego_imgval4_N_rays20000_train_epochs999_lr0.0005_.png" width=auto height=auto>
+                    <caption>1000 epochs</caption>
+                </div>
+                <div class="image-box2">
+                    <img src="Project_5/images/lego/lego_imgval4_N_rays20000_train_epochs1499_lr0.0005_.png"
+                        alt="lego_imgval4_N_rays20000_train_epochs1499_lr0.0005_.png" width=auto height=auto>
+                    <caption>1500 epochs</caption>
+                </div>
+                <div class="image-box2">
+                    <img src="Project_5/images/lego/lego_imgval4_N_rays20000_train_epochs1999_lr0.0005_.png"
+                        alt="lego_imgval4_N_rays20000_train_epochs1999_lr0.0005_.png" width=auto height=auto>
+                    <caption>2000 epochs</caption>
+                </div>
+                <div class="image-box2">
+                    <img src="Project_5/images/lego/lego_imgval4_N_rays20000_train_epochs2499_lr0.0005_.png"
+                        alt="lego_imgval4_N_rays20000_train_epochs2499_lr0.0005_.png" width=auto height=auto>
+                    <caption>2500 epochs</caption>
+                </div>
+                <div class="image-box2">
+                    <img src="Project_5/images/lego/lego_imgval4_N_rays20000_train_epochs2999_lr0.0005_.png"
+                        alt="lego_imgval4_N_rays20000_train_epochs2999_lr0.0005_.png" width=auto height=auto>
+                    <caption>3000 epochs</caption>
+                </div>
+            </div>
+            <div class="image-container">
+                <div class="image-box2">
+                    <img src="Project_5/images/lego/lego_imgval4_N_rays20000_train_epochs9999_lr0.0005_.png"
+                        alt="lego_imgval4_N_rays20000_train_epochs9999_lr0.0005_.png" width=auto height=auto>
+                    <caption>10000 epochs</caption>
+                </div>
+                <div class="image-box2">
+                    <img src="Project_5/images/lego/lego_imgval4_N_rays20000_train_epochs19999_lr0.0005_.png"
+                        alt="lego_imgval4_N_rays20000_train_epochs19999_lr0.0005_.png" width=auto height=auto>
+                    <caption>20000 epochs</caption>
+                </div>
+                <div class="image-box2">
+                    <img src="Project_5/images/lego/lego_imgval4_N_rays20000_train_epochs29999_lr0.0005_.png"
+                        alt="lego_imgval4_N_rays20000_train_epochs29999_lr0.0005_.png" width=auto height=auto>
+                    <caption>30000 epochs</caption>
+                </div>
+                <div class="image-box2">
+                    <img src="Project_5/images/lego/lego_imgval4_N_rays20000_train_epochs39999_lr0.0005_.png"
+                        alt="lego_imgval4_N_rays20000_train_epochs39999_lr0.0005_.png" width=auto height=auto>
+                    <caption>40000 epochs</caption>
+                </div>
+                <div class="image-box2">
+                    <img src="Project_5/images/lego/lego_imgval4_N_rays20000_train_epochs49999_lr0.0005_.png"
+                        alt="lego_imgval4_N_rays20000_train_epochs49999_lr0.0005_.png" width=auto height=auto>
+                    <caption>50000 epochs</caption>
+                </div>
+            </div>
+            <p>Here are the MSE Loss and PSNR during the 50000 epochs. The model achieves 0.0016 loss and 27.85 PSNR on
+                the training set.</p>
+            <div class="image-container">
+                <div class="image-box2">
+                    <img src="Project_5/images/result/result1loss.jpg" alt="result1loss.jpg" width=auto height=auto>
+                    <caption>MSE loss</caption>
+                </div>
+                <div class="image-box2">
+                    <img src="Project_5/images/result/result1psnr.jpg" alt="result1psnr.jpg" width=auto height=auto>
+                    <caption>PSNR</caption>
+                </div>
+            </div>
+            <p>The gif of all the predicted test images is shown below.</p>
+            <div class="center3">
+                <img src="Project_5/images/result/result1.gif" alt="result1.gif" width=auto height=auto>
+            </div>
+            <h4>N_pixel = 160000, n_samples = 64, lr = 5e-4, num_epochs = 50000</h4>
+            <p>The gif of all the predicted test images is shown below.</p>
+            <div class="center3">
+                <img src="Project_5/images/result/result2.gif" alt="result2.gif" width=auto height=auto>
+            </div>
+        </div>
+
+        <!-- Project 6 -->
+        <div id="module6" class="module">
+            <h1>A Neural Algorithm of Artistic Style and Gradient Domain Fusion</h1>
+            <p>By Zhiyao Jiang (jessica_jiangzy@berkeley.edu)</p>
+
+            <h2>A Neural Algorithm of Artistic Style</h2>
+            <h3>Part 1. Introduction</h3>
+            <p>
+                I have re-implemented the paper "A Neural Algorithm of Artistic Style" and developed a deep learning
+                system
+                capable
+                of
+                extracting and blending arbitrary image content and styles. This system is built upon the VGG19 network
+                and is
+                capable
+                of creating art with high perceptual quality. Moreover, it advances our algorithmic understanding of how
+                humans
+                create
+                and comprehend artistic images.
+            </p>
+
+            <h3>Part 2. Loss Function</h3>
+            <h4>Content loss function</h4>
+            <p>
+                The content loss function (\(\mathcal{L}_{\text{content}}\)) quantifies the difference in feature
+                representations
+                between the original image and the generated image at specific layers of a convolutional neural network.
+                It
+                measures the
+                gap between the two in the form of squared error, guiding the generation process to match the feature
+                responses
+                of the
+                generated image with those of the original image at the selected layer.
+            </p>
+            $$
+            \mathcal{L}_{\text {content }}(\vec{p}, \vec{x}, l)=\frac{1}{2} \sum_{i, j}\left(F_{i j}^l-P_{i
+            j}^l\right)^2
+            $$
+
+
+
+            <h4>Style loss function</h4>
+            <p>
+                The Gram matrix in a convolutional neural network represents the inner product of filter responses
+                within a
+                specific
+                layer. It serves to capture the spatial correlation of features within the layer, providing information
+                about
+                the
+                interactions between different features. In each layer of the neural network, the authors constructed a
+                style
+                representation to calculate the correlations between responses of different filters. These correlations
+                among
+                features
+                are expressed by the Gram matrix, which plays a crucial role in the process of style transfer.
+            </p>
+            $$
+            G_{i j}^l=\sum_k F_{i k}^l F_{j k}^l
+            $$
+
+
+            <p>
+                The formula on the left side illustrates the calculation of style loss at layer \(l\) in the neural
+                network.
+                Here,
+                \(G_{l,ij}\) represents the Gram matrix element at layer \(l\) for the generated image, and \(A_{l,ij}\)
+                represents
+                the
+                Gram matrix element at layer \(l\) for the original image. This loss quantifies the difference in style
+                between
+                the
+                generated and original images at layer \(l\) by comparing the elements of their Gram matrices, guiding
+                the
+                generation
+                process to approximate the style of the original image. The formula on the right side represents the
+                total style
+                loss,
+                where \(L\) is the total number of layers in the network, and \(w_l\) is the weight for each layer's
+                style loss.
+                By
+                weighted summation of style losses across all layers, the final style loss function is obtained.
+            </p>
+            $$
+            E_l=\frac{1}{4 N_l^2 M_l^2} \sum_{i, j}\left(G_{i j}^l-A_{i j}^l\right)^2 \quad \mathcal{L}_{\text {style
+            }}(\vec{a},
+            \vec{x})=\sum_{l=0}^L w_l E_l
+            $$
+
+
+            <h4>The fusion of content and style</h4>
+            <p>
+                The total loss \(\mathcal{L}_{\text{total}}\) comprehensively integrates both content loss and style
+                loss. The
+                proportion of style influence in the image can be adjusted by tuning the ratio of \(\alpha\) and
+                \(\beta\). With
+                \(\beta\) fixed, a higher \(\alpha\) emphasizes style transfer more prominently, contributing to a more
+                pronounced
+                stylistic effect in the generated image.
+            </p>
+            $$
+            \mathcal{L}_{\text {total }}(\vec{p}, \vec{a}, \vec{x})=\alpha \mathcal{L}_{\text {content }}(\vec{p},
+            \vec{x})+\beta
+            \mathcal{L}_{\text {style }}(\vec{a}, \vec{x})
+            $$
+
+
+
+            <h3>Part 3. Paper Image Style Transfer</h3>
+
+
+            <div class="image-container">
+                <div class="image-box">
+                    <img src="Final_Project/images/demoimages_style/tubingen.jpg" alt="Tubingen Neckarfront" width=700 height=450>
+                    <caption>Original Image Tubingen</caption>
+                </div>
+            </div>
+
+
+
+            <!-- <div style="height: 25px;"></div>
+            <div class="image-container">
+                <div class="image-box">
+                    <img src="images/demoimages_style/starry_night.png" alt="starry_night" width=400 height=450>
+                    <caption>Starry Night</caption>
+                </div>
+                <div class="image-box">
+                    <img src="images/demoimages_style/starry_night_google_1.000000e+06_and_tubingen_1_1500-1701855318249-19.png"
+                        alt="Style Transfer Result" width=400 height=450>
+                    <caption>Style Transfer Image</caption>
+                </div>
+            </div>
+        
+        
+            <div style="height: 25px;"></div>
+            <div class="image-container">
+                <div class="image-box">
+                    <img src="images/demoimages_style/the_scream.jpg" alt="The Scream" width=400 height=450>
+                    <caption>The Scream</caption>
+                </div>
+                <div class="image-box">
+                    <img src="images/demoimages_style/the_scream_1.000000e+06_and_tubingen_1_1500.png"
+                        alt="Style Transfer Result" width=400 height=450>
+                    <caption>Style Transfer Image</caption>
+                </div>
+            </div>
+        
+            <div style="height: 25px;"></div>
+            <div class="image-container">
+                <div class="image-box">
+                    <img src="images/demoimages_style/shipwreck.jpg" alt="Shipwreck" width=400 height=450>
+                    <caption>Ship Wreck</caption>
+                </div>
+                <div class="image-box">
+                    <img src="images/demoimages_style/shipwreck_1.000000e+06_and_tubingen_1_1000.png"
+                        alt="Style Transfer Result" width=400 height=450>
+                    <caption>Style Transfer Image</caption>
+                </div>
+            </div>
+        
+            <div style="height: 25px;"></div>
+            <div class="image-container">
+                <div class="image-box">
+                    <img src="images/demoimages_style/seated-nude.jpg" alt="Seated Nude" width=400 height=450>
+                    <caption>Seated Nude</caption>
+                </div>
+                <div class="image-box">
+                    <img src="images/demoimages_style/seated-nude_1.000000e+08_and_tubingen_12_5000.png"
+                        alt="Style Transfer Result" width=400 height=450>
+                    <caption>Style Transfer Image</caption>
+                </div>
+            </div>
+            <div style="height: 45px;"></div> -->
+
+
+            <div style="height: 25px;"></div>
+            <div class="image-container">
+                <div class="image-box2">
+                    <img src="Final_Project/images/demoimages_style/starry_night.png" alt="starry_night" width=500 height=300>
+                    <caption>Starry Night</caption>
+                </div>
+                <div class="image-box2">
+                    <img src="Final_Project/images/demoimages_style/starry_night_google_1.000000e+06_and_tubingen_1_1500-1701855318249-19.png"
+                        alt="Style Transfer Result" width=500 height=300>
+                    <caption>Style Transfer Image</caption>
+                </div>
+                <div class="image-box2">
+                    <img src="Final_Project/images/demoimages_style/the_scream.jpg" alt="The Scream" width=500 height=300>
+                    <caption>The Scream</caption>
+                </div>
+                <div class="image-box2">
+                    <img src="Final_Project/images/demoimages_style/the_scream_1.000000e+06_and_tubingen_1_1500.png"
+                        alt="Style Transfer Result" width=500 height=300>
+                    <caption>Style Transfer Image</caption>
+                </div>
+            </div>
+
+
+            <div style="height: 25px;"></div>
+            <div class="image-container">
+                <div class="image-box2">
+                    <img src="Final_Project/images/demoimages_style/shipwreck.jpg" alt="Shipwreck" width=500 height=300>
+                    <caption>Ship Wreck</caption>
+                </div>
+                <div class="image-box2">
+                    <img src="Final_Project/images/demoimages_style/shipwreck_1.000000e+06_and_tubingen_1_1000.png"
+                        alt="Style Transfer Result" width=500 height=300>
+                    <caption>Style Transfer Image</caption>
+                </div>
+                <div class="image-box2">
+                    <img src="Final_Project/images/demoimages_style/seated-nude.jpg" alt="Seated Nude" width=500 height=300>
+                    <caption>Seated Nude</caption>
+                </div>
+                <div class="image-box2">
+                    <img src="Final_Project/images/demoimages_style/seated-nude_1.000000e+08_and_tubingen_12_5000.png"
+                        alt="Style Transfer Result" width=500 height=300>
+                    <caption>Style Transfer Image</caption>
+                </div>
+            </div>
+            <div style="height: 45px;"></div>
+
+            <h3>Part 4. My Image Style Transfer</h3>
+
+            <div class="image-container">
+                <div class="image-box2">
+                    <img src="Final_Project/images/demoimages_style/GoldenGateBridge.jpg" alt="GoldenGateBridge" width=500 height=300>
+                    <caption>Golden Gate Bridge</caption>
+                </div>
+                <div class="image-box2">
+                    <img src="Final_Project/images/demoimages_style/starry_night.png" alt="Original Image" width=500 height=300>
+                    <caption>Starry Night</caption>
+                </div>
+                <div class="image-box2">
+                    <img src="Final_Project/images/demoimages_style/starry_night_google_1.000000e+10_and_GoldenGateBridge_1_10000.png"
+                        alt="Style Transfer Result" width=500 height=300>
+                    <caption>Style Transfer Image</caption>
+                </div>
+            </div>
+
+            <div style="height: 45px;"></div>
+
+            <div class="image-container">
+                <div class="image-box2">
+                    <img src="Final_Project/images/demoimages_style/emerald_lake_crop.jpg" alt="GoldenGateBridge" width=500
+                        height=300>
+                    <caption>Emerald Lake</caption>
+                </div>
+                <div class="image-box2">
+                    <img src="Final_Project/images/demoimages_style/starrynight2.jpeg" alt="Original Image" width=500 height=300>
+                    <caption>Starry Night2</caption>
+                </div>
+                <div class="image-box2">
+                    <img src="Final_Project/images/demoimages_style/starrynight2_1.000000e+08_and_emerald_lake_crop_12_5000.png"
+                        alt="Style Transfer Result" width=500 height=300>
+                    <caption>Style Transfer Image</caption>
+                </div>
+            </div>
+
+            <div style="height: 45px;"></div>
+
+
+            <div class="image-container">
+                <div class="image-box2">
+                    <img src="Final_Project/images/demoimages_style/forest_and_cute_girl_crop.jpg" alt="Forest and Cute Girl Crop"
+                        width=500 height=300>
+                    <caption>Forest</caption>
+                </div>
+                <div class="image-box2">
+                    <img src="Final_Project/images/demoimages_style/green_wheat_fields.jpg" alt="Green Wheat Fields" width=500
+                        height=300>
+                    <caption>Green Wheat Fields</caption>
+                </div>
+                <div class="image-box2">
+                    <img src="Final_Project/images/demoimages_style/green_wheat_fields_1.000000e+07_and_forest_and_cute_girl_crop_1_2000.png"
+                        alt="Style Transfer Result" width=500 height=300>
+                    <caption>Style Transfer Image</caption>
+                </div>
+            </div>
+
+            <h3>Part 5. Tuning Hyperparameters</h3>
+            <p>
+                When the values of alpha/beta are too small, it can lead to unstable model convergence,
+                potentially causing gradient explosions and abrupt spikes in loss during training.
+                This instability can result in an unreliable style transfer process.
+            </p>
+            <h4>alpha/beta = 1e6; epoch = 1k</h4>
+            <div class="image-container">
+                <div class="image-box2">
+                    <img src="Final_Project/images/starry_night_google_1.000000e+06_and_GoldenGateBridge_1_1000_size1024.png"
+                        alt="starry_night_google_1.000000e+06_and_GoldenGateBridge_1_1000_size1024.png" width=450
+                        height=350>
+                    <caption>Unreliable Style Transfer Result</caption>
+                </div>
+                <div class="image-box2">
+                    <img src="Final_Project/images/starry_night_google_and_GoldenGateBridge_steps2000_style_weight1000000.0loss_plot.png"
+                        alt="starry_night_google_and_GoldenGateBridge_steps2000_style_weight1000000.0loss_plot.png"
+                        width=700 height=400>
+                    <caption>Style and Content Loss</caption>
+                </div>
+            </div>
+            <p>
+                After reducing the values of alpha and beta and extending the training for more epochs, I observed a
+                significant improvement in the results.
+                Upon closer inspection of the upscaled images, it became evident that the outcomes from additional
+                epochs exhibited a greater level of texture detail.
+                These observations were made during the course of my task.
+            </p>
+            <div class="image-container">
+                <div class="image-box2">
+                    <img src="Final_Project/images/starry_night_google_1.000000e+10_and_GoldenGateBridge_1_2000.png"
+                        alt="starry_night_google_1.000000e+10_and_GoldenGateBridge_1_2000.png" width=640 height=460>
+                    <caption>alpha/beta = 1e10; epoch = 2k</caption>
+                </div>
+                <div class="image-box2">
+                    <img src="Final_Project/images/starry_night_google_1.000000e+10_and_GoldenGateBridge_1_10000-1701969007947-3.png"
+                        alt="starry_night_google_1.000000e+10_and_GoldenGateBridge_1_10000-1701969007947-3.png"
+                        width=640 height=460>
+                    <caption>alpha/beta = 1e10; epoch = 10k</caption>
+                </div>
+            </div>
+            <div class="image-container">
+                <div class="image-box">
+                    <img src="Final_Project/images/starry_night_google_and_GoldenGateBridge_steps10000loss_plot.png"
+                        alt="starry_night_google_and_GoldenGateBridge_steps10000loss_plot.png" width=640 height=450>
+                    <caption>Loss for alpha/beta = 1e10; epoch = 10k</caption>
+                </div>
+            </div>
+
+
+
+
+            <h2>Gradient Domain Fusion</h2>
+            <h3>Part 1. Toy Problem</h3>
+            <p>
+                For the toy problem in gradient domain processing, I approached the task by formulating it as a least
+                squares
+                optimization problem.
+                The goal was to reconstruct an image such that its gradients match those of a given source image, while
+                also
+                maintaining one pixel intensity.
+            </p>
+            <p>
+                Firstly, I represented the image as a 2D NumPy array and flattened this array into a 1D vector.
+                To do this, I used the <code class="language-python">np.arange</code> function, which generated a
+                sequence of
+                numbers and reshaped it to match the image dimensions,
+                creating a mapping between each pixel and its corresponding variable number.
+            </p>
+            <pre><code class="language-python">imh, imw = im.shape[0], im.shape[1]
+im2var = np.arange(imh*imw).reshape(imh, imw)</code></pre>
+            <p>
+                With the mapping in place, I then initialized the matrix \( A \) and vector \( b \), which would hold
+                the
+                constraints of the least squares problem.
+                The matrix `A` was constructed as a sparse matrix using <code class="language-python">lil_matrix</code>
+                from the
+                <code class="language-python">scipy.sparse</code> package,
+                which is efficient for incremental construction of sparse matrices.
+                For each pixel in the image, I set up two main objectives: to match the x-gradient and the y-gradient of
+                the
+                source image.
+                To add these constraints to the matrix \( A \) and vector \( b \), I iterated over each pixel in the
+                image and
+                set up equations corresponding to each gradient.
+            </p>
+            <pre><code class="language-python"># Objective 1: x-gradient
+A[e, im2var[y, x+1]] = 1
+A[e, im2var[y, x]] = -1
+b[e] = im[y, x+1] - im[y, x]
+        
+# Objective 2: y-gradient
+A[e, im2var[y+1, x]] = 1
+A[e, im2var[y, x]] = -1
+b[e] = im[y+1, x] - im[y, x]</code></pre>
+            <p>
+                Lastly, to ensure that the intensity of at least one pixel remained constant between the source and
+                reconstructed images,
+                I added an additional constraint (Objective 3) for the top-left corner of the image.
+            </p>
+            <pre><code class="language-python"># Objective 3: Maintain the top-left pixel intensity
+A[e, im2var[0, 0]] = 1
+b[e] = im[0, 0]</code></pre>
+            <p>
+                Upon setting up all the constraints, I solved the least squares problem using the <code
+                    class="language-python">lsqr</code> method from the <code
+                    class="language-python">scipy.sparse.linalg</code>
+                package.
+                This method efficiently handles large sparse linear systems.
+                Finally, I reshaped the solution vector \( v \) back to the original image dimensions to obtain the
+                reconstructed image <code class="language-python">im_out</code>.
+            </p>
+            <div class="image-container">
+                <div class="image-box">
+                    <img src="Final_Project/images/demoimages/toy_problem.png" alt="toy_problem.png" width=450 height=445>
+                    <caption>Original Image</caption>
+                </div>
+                <div class="image-box">
+                    <img src="Final_Project/images/demoimages/reconstructed_image.png" alt="reconstructed_image.png" width=450
+                        height=450>
+                    <caption>Reconstructed Image</caption>
+                </div>
+            </div>
+
+            <h3>Part 2. Poisson Blending</h3>
+            <p>
+                Next, I aimed to seamlessly integrate a source image region into a target background.
+                The objective was to preserve the gradients from the source while maintaining the integrity of the
+                surrounding
+                target background,
+                thus avoiding noticeable seams.
+                To achieve Poisson blending, I followed these steps:
+            </p>
+            <h4>Region Selection and Alignment:</h4>
+            <p>
+                I utilized the provided Matlab starter code to choose a specific area from the source image and
+                establish its
+                desired position on the background image.
+                Utilizing translation, I matched the pixel indices between the source and target regions to correspond
+                with one
+                another.
+                This step is crucial to ensure the gradients align correctly during the blending process.
+            </p>
+            <h4>Solving Blending Constraints:</h4>
+            <p>
+                Using the equation provided below,
+                I constructed a system of linear equations where the goal was to find the new pixel values within the
+                source
+                region that maintain the source image gradients.
+                The variable \( v \) in the equation represents the new intensity values to be solved. Then I
+                pre-initialized a
+                sparse matrix \( A \) and vector \( b \) to construct the linear system.
+                For each pixel within the source region, I calculated the difference between the source gradients and
+                the
+                target,
+                and stored these differences in the matrix \( A \) and vector \( b \).
+                To solve this problem, I utilized the spsolve function from the <code
+                    class="language-python">scipy.sparse.linalg</code> module, which provided the new pixel values for
+                the
+                blended region.
+            </p>
+
+            <h4>Image Reconstruction:</h4>
+            <p>
+                After solving for the new intensity values,
+                I reshaped the solution vector to match the image dimensions and copied these values back into the
+                target image
+                to produce the final blended result.
+            </p>
+            <p>Here are my results.</p>
+            <div class="image-container">
+                <div class="image-box2">
+                    <img src="Final_Project/images/demoimages/im2.JPG" alt="im2.JPG" width=400 height=350>
+                    <caption>Background Image</caption>
+                </div>
+                <div class="image-box2">
+                    <img src="Final_Project/images/demoimages/penguin-chick.jpeg" alt="penguin-chick.jpeg" width=400 height=350>
+                    <caption>Source Image</caption>
+                </div>
+                <div class="image-box2">
+                    <img src="Final_Project/images/demoimages/blended_image.png" alt="blended_image.png" width=400 height=350>
+                    <caption>Blended Image</caption>
+                </div>
+            </div>
+            <div style="height: 45px;"></div>
+            <div class="image-container">
+                <div class="image-box2">
+                    <img src="Final_Project/images/exampleimages/ex1/lake.jpg" alt="lake.jpg" width=450 height=300>
+                    <caption>Background Image</caption>
+                </div>
+                <div class="image-box2">
+                    <img src="Final_Project/images/exampleimages/ex1/sharp.jpg" alt="sharp.jpg" width=450 height=300>
+                    <caption>Source Image</caption>
+                </div>
+                <div class="image-box2">
+                    <img src="Final_Project/images/exampleimages/ex1/exblended_image1.png" alt="exblended_image1.png" width=450
+                        height=300>
+                    <caption>Blended Image</caption>
+                </div>
+            </div>
+            <div style="height: 45px;"></div>
+            <div class="image-container">
+                <div class="image-box2">
+                    <img src="Final_Project/images/exampleimages/ex2/berkeley.jpg" alt="berkeley.jpg" width=430 height=400>
+                    <caption>Background Image</caption>
+                </div>
+                <div class="image-box2">
+                    <img src="Final_Project/images/exampleimages/ex2/hotairballoon.jpg" alt="hotairballoon.jpg" width=480 height=300>
+                    <caption>Source Image</caption>
+                </div>
+                <div class="image-box2">
+                    <img src="Final_Project/images/exampleimages/ex2/exblended_image2.png" alt="exblended_image2.png" width=430
+                        height=400>
+                    <caption>Blended Image</caption>
+                </div>
+            </div>
+            <h3>Part 3. Bells & Whistles</h3>
+            <h4>Mixed Gradients</h4>
+            <p>
+                In this part, I took the concept of possion blending a step further by employing mixed gradients
+                blending.
+                Unlike traditional Poisson blending, which strictly utilizes the source image gradients,
+                mixed gradients blending allows for a more dynamic and context-sensitive approach.
+                Here, the gradient with the larger magnitude between the source and the target at each pixel is chosen
+                as the
+                guiding gradient.
+                In mathematical terms, for each pair of corresponding pixels,
+                if the absolute gradient difference in the source image is greater than that in the target (\( |s_i -
+                s_j| >
+                |t_i - t_j| \)),
+                then the source gradient (\( s_i - s_j \)) is used; otherwise, the target gradient (\( t_i - t_j \)) is
+                used.
+                This blending technique opens up new possibilities for creative image editing,
+                such as adding text or objects onto complex backgrounds without the common artifacts associated with
+                simpler
+                blending methods.
+            </p>
+            <div class="image-container">
+                <div class="image-box2">
+                    <img src="Final_Project/images/exampleimages/mixedex2/brick-wall.png" alt="brick-wall.png" width=430 height=300>
+                    <caption>Background Image</caption>
+                </div>
+                <div class="image-box2">
+                    <img src="Final_Project/images/exampleimages/mixedex2/function.png" alt="function.png" width=350 height=220>
+                    <caption>Source Image</caption>
+                </div>
+                <div class="image-box2">
+                    <img src="Final_Project/images/exampleimages/mixedex2/mix_exblended_image2.png" alt="mixed_exblended_image2.png"
+                        width=430 height=300>
+                    <caption>Blended Image</caption>
+                </div>
+            </div>
+            <h4>Color2Gray</h4>
+            <p>
+                Then, I tackled the challenge of preserving contrast in grayscale conversion which is often lost in
+                standard
+                methods like rgb2gray.
+                The objective was to produce a grayscale image that maintains the contrast of the original color image,
+                thereby making the numbers within the colorblindness test easily readable even after the conversion.
+                To achieve this, I ventured beyond traditional grayscale conversion techniques by incorporating
+                gradient-domain
+                processing.
+                First, I converted the RGB image to the HSV color space, which separates image intensity from color
+                information.
+                I then focused on the intensity channel, which is the V channel in HSV, to maintain the luminance of the
+                image.
+                Next, I computed the gradients of the intensity channel using the Sobel operator,
+                which provided me with both the horizontal and vertical components of the gradient.
+                I calculated the magnitude of these gradients to quantify the contrast at each pixel.
+                To construct the final grayscale image, I added the magnitude of the gradients back to the intensity
+                channel.
+                This step is crucial as it enhances the contrast by emphasizing the edges and transitions present in the
+                original color image.
+                Finally, I normalized the resulting image to ensure that the pixel values remained within the
+                displayable
+                grayscale range.
+            </p>
+            <div style="height: 120px;"></div>
+            <div class="center1">
+                <img src="Final_Project/images/exampleimages/Color2Gray.png" alt="Color2Gray.png" width=800 height=300>
+            </div>
+
+            <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.23.0/prism.min.js"></script>
+        </div>
+
+    </div>
+
+    <script>
+        function showContent(moduleId, link) {
+            const modules = document.querySelectorAll('.module');
+            modules.forEach(module => {
+                module.style.display = 'none';
+            });
+
+            const selectedModule = document.getElementById(moduleId);
+            if (selectedModule) {
+                selectedModule.style.display = 'block';
+            }
+
+            const links = document.querySelectorAll('.sidebar a');
+            links.forEach(link => {
+                link.classList.remove('active-link');
+            });
+
+            link.classList.add('active-link');
+        }
+    </script>
+
+</body>
+</html>
